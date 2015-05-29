@@ -91,7 +91,7 @@ extern int BaseThread();
 #define    MEM_WRITE( arg1, arg2 )   Z502MemoryWrite( arg1, (INT32 *)arg2 )
 
 #define    READ_MODIFY( arg1, arg2, arg3, arg4 )                               \
-	         Z502MemoryReadModify( arg1, arg2, arg3, arg4 )
+             Z502MemoryReadModify( arg1, arg2, arg3, arg4 )
 
 
 
@@ -122,7 +122,7 @@ extern int BaseThread();
                 }                                                              \
 
 #define         CREATE_PROCESS( arg1, arg2, arg3, arg4, arg5 )   {             \
-		SYSTEM_CALL_DATA *SystemCallData =                             \
+        SYSTEM_CALL_DATA *SystemCallData =                             \
                      (SYSTEM_CALL_DATA *)calloc(1, sizeof (SYSTEM_CALL_DATA)); \
                 SystemCallData->NumberOfArguments = 6;                         \
                 SystemCallData->SystemCallNumber = SYSNUM_CREATE_PROCESS;      \

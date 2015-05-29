@@ -1,6 +1,6 @@
 /************************************************************************
-	
-	base.c	
+    
+    base.c  
 
         This code forms the base of the operating system you will
         build.  It has only the barest rudiments of what you will
@@ -21,7 +21,7 @@
         3.0 August   2004: Modified to support memory mapped IO
         3.1 August   2004: hardware interrupt runs on separate thread
         3.11 August  2004: Support for OS level locking
-	4.0  July    2013: Major portions rewritten to support multiple threads
+    4.0  July    2013: Major portions rewritten to support multiple threads
 
         Final Version:
         Author:                 Yunhe Tang
@@ -34,12 +34,12 @@
 #include             "syscalls.h"
 #include             "protos.h"
 #include             "string.h"
-#include	         "stdlib.h"
-#include	         "process.h"
-#include	         "message.h"
+#include             "stdlib.h"
+#include             "process.h"
+#include             "message.h"
 
 //temperary way to deal with undefinition of Z502CONTEXT.
-#include        	"z502.h"
+#include             "z502.h"
 
 // These loacations are global and define information about the page table
 extern UINT16        *Z502_PAGE_TBL_ADDR;
@@ -54,7 +54,7 @@ char                 *call_names[] = { "mem_read ", "mem_write",
                             "send     ", "receive  ", "disk_read",
                             "disk_wrt ", "def_sh_ar" };
 
-	
+    
 /************************************************************************
     INTERRUPT_HANDLER
         When the Z502 gets a hardware interrupt, it transfers control to
@@ -64,10 +64,10 @@ void    interrupt_handler( void ) {
     INT32              device_id;
     INT32              status;
     INT32              Index = 0;
-    INT32			   error = 0;
+    INT32              error = 0;
     static INT32       how_many_interrupt_entries = 0;    /** TEMP **/
-    Ptr_PCB 	       next_PCB = NULL;	
-	PDiskBlock			   targetblock;
+    Ptr_PCB            next_PCB = NULL; 
+    PDiskBlock             targetblock;
 
     // Get cause of interrupt
     MEM_READ(Z502InterruptDevice, &device_id );
@@ -79,41 +79,41 @@ void    interrupt_handler( void ) {
     MEM_READ(Z502InterruptStatus, &status );
     
 
-	if(device_id != -1){
+    if(device_id != -1){
 
-    	switch(device_id){
-			case TIMER_INTERRUPT:
-	    		RemoveFromTimerQueue(&next_PCB);
-	    		AddToReadyQueue(next_PCB);
-	    		break;
-	  	
-			default:
-	    		if(device_id >= DISK_INTERRUPT && device_id <= DISK_INTERRUPT_MAX){
-	    			targetblock = GetDiskRequest(DISK_ID(device_id));
-	    			AddToReadyQueue(targetblock->ppcb);
-	    			
-	    			targetblock = ReadDiskRequest(DISK_ID(device_id));
-	    			if(targetblock != NULL){
-						if(targetblock->read_or_write == D_WRITE){
-							lastDiskAct[DISK_ID(device_id)] = targetblock->ppcb->process_id;
-							Disk_W(targetblock->disk_id, targetblock->sector, targetblock->data,1);
-						}
-						else{
-							lastDiskAct[DISK_ID(device_id)] = targetblock->ppcb->process_id;
-							Disk_R(targetblock->disk_id, targetblock->sector, targetblock->data,1);
-						}
-					}
-	    		}
-	    		else{
-	    			printf("Error in interrupt handler. device_id = %d\n",device_id);
-	    			system("pause");
-	    		}
-    	}   
-		MEM_WRITE(Z502InterruptClear, &Index );	
-		
-	}
-	MyInterruptStatus = -1;
-	
+        switch(device_id){
+            case TIMER_INTERRUPT:
+                RemoveFromTimerQueue(&next_PCB);
+                AddToReadyQueue(next_PCB);
+                break;
+        
+            default:
+                if(device_id >= DISK_INTERRUPT && device_id <= DISK_INTERRUPT_MAX){
+                    targetblock = GetDiskRequest(DISK_ID(device_id));
+                    AddToReadyQueue(targetblock->ppcb);
+                    
+                    targetblock = ReadDiskRequest(DISK_ID(device_id));
+                    if(targetblock != NULL){
+                        if(targetblock->read_or_write == D_WRITE){
+                            lastDiskAct[DISK_ID(device_id)] = targetblock->ppcb->process_id;
+                            Disk_W(targetblock->disk_id, targetblock->sector, targetblock->data,1);
+                        }
+                        else{
+                            lastDiskAct[DISK_ID(device_id)] = targetblock->ppcb->process_id;
+                            Disk_R(targetblock->disk_id, targetblock->sector, targetblock->data,1);
+                        }
+                    }
+                }
+                else{
+                    printf("Error in interrupt handler. device_id = %d\n",device_id);
+                    system("pause");
+                }
+        }   
+        MEM_WRITE(Z502InterruptClear, &Index ); 
+        
+    }
+    MyInterruptStatus = -1;
+    
 }                                       /* End of interrupt_handler */
 
 /************************************************************************
@@ -122,7 +122,7 @@ void    interrupt_handler( void ) {
 ************************************************************************/
 
 void    fault_handler( void ){
-	INT32       device_id;
+    INT32       device_id;
     INT32       status;
     INT32       Index = 0;
 
@@ -134,21 +134,21 @@ void    fault_handler( void ){
     MEM_READ(Z502InterruptStatus, &status );
 
     switch(device_id){
-    	case CPU_ERROR:
-    		Z502Halt();
-    		break;
-    	case INVALID_MEMORY:
-    		PageFaultHandler(Z502_CURRENT_CONTEXT, status);
-    		break;
-    	case INVALID_PHYSICAL_MEMORY:
-    		Z502Halt();
-    		break;
-    	case PRIVILEGED_INSTRUCTION:
-    		printf("Error in fault handler with PRIVILEGED_INSTRUCTION.\n");
-    		Z502_MODE = KERNEL_MODE;
-    		break;
-    	default:
-    		Z502Halt();
+        case CPU_ERROR:
+            Z502Halt();
+            break;
+        case INVALID_MEMORY:
+            PageFaultHandler(Z502_CURRENT_CONTEXT, status);
+            break;
+        case INVALID_PHYSICAL_MEMORY:
+            Z502Halt();
+            break;
+        case PRIVILEGED_INSTRUCTION:
+            printf("Error in fault handler with PRIVILEGED_INSTRUCTION.\n");
+            Z502_MODE = KERNEL_MODE;
+            break;
+        default:
+            Z502Halt();
     }
     
     
@@ -172,7 +172,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
     short               call_type;
     static short        do_print = 10;
     short               i;
-    INT32		Time;
+    INT32       Time;
 
 
     call_type = (short)SystemCallData->SystemCallNumber;
@@ -187,32 +187,32 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
 
         // terminate system call
         case SYSNUM_TERMINATE_PROCESS:
-	        TerminateProcess((INT32)((long)SystemCallData->Argument[0]),
-			                 (INT32 *)SystemCallData->Argument[1]);
+            TerminateProcess((INT32)((long)SystemCallData->Argument[0]),
+                             (INT32 *)SystemCallData->Argument[1]);
             break;
 
         case SYSNUM_SLEEP:
-	        start_timer((long)SystemCallData->Argument[0]);
-	        break;
+            start_timer((long)SystemCallData->Argument[0]);
+            break;
 
-	    case SYSNUM_CREATE_PROCESS:
-	        CreateProcess((char * )SystemCallData->Argument[0], 
-			              (void * )SystemCallData->Argument[1],
-			              (INT32)((long)SystemCallData->Argument[2]),
-		  	              (INT32 *)SystemCallData->Argument[3],
-			              (INT32 *)SystemCallData->Argument[4]);
-	        break;
+        case SYSNUM_CREATE_PROCESS:
+            CreateProcess((char * )SystemCallData->Argument[0], 
+                          (void * )SystemCallData->Argument[1],
+                          (INT32)((long)SystemCallData->Argument[2]),
+                          (INT32 *)SystemCallData->Argument[3],
+                          (INT32 *)SystemCallData->Argument[4]);
+            break;
 
-	    case SYSNUM_GET_PROCESS_ID:
-	        Get_Process_ID((char *)SystemCallData->Argument[0],
-			               (INT32 *)SystemCallData->Argument[1],
-			               (INT32 *)SystemCallData->Argument[2]);
-	        break;
+        case SYSNUM_GET_PROCESS_ID:
+            Get_Process_ID((char *)SystemCallData->Argument[0],
+                           (INT32 *)SystemCallData->Argument[1],
+                           (INT32 *)SystemCallData->Argument[2]);
+            break;
 
-	    case SYSNUM_SUSPEND_PROCESS:
-	        SuspendProcess((INT32)((long)SystemCallData->Argument[0]),
-			               (INT32 *)SystemCallData->Argument[1]);	
-	        break;
+        case SYSNUM_SUSPEND_PROCESS:
+            SuspendProcess((INT32)((long)SystemCallData->Argument[0]),
+                           (INT32 *)SystemCallData->Argument[1]);   
+            break;
 
         case SYSNUM_RESUME_PROCESS:
             ResumeProcess((INT32)((long)SystemCallData->Argument[0]),
@@ -230,15 +230,15 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
                         (char *)((long)SystemCallData->Argument[1]),
                         (INT32)((long)SystemCallData->Argument[2]),
                         (INT32 *)SystemCallData->Argument[3]);
-	        break;
+            break;
 
         case SYSNUM_RECEIVE_MESSAGE:
             ReceiveMessage((INT32)((long)SystemCallData->Argument[0]),
                            (char *)((long)SystemCallData->Argument[1]),
                            (INT32)((long)SystemCallData->Argument[2]),
-			               (INT32 *)SystemCallData->Argument[3],
-			               (INT32 *)SystemCallData->Argument[4],
-			               (INT32 *)SystemCallData->Argument[5]);
+                           (INT32 *)SystemCallData->Argument[3],
+                           (INT32 *)SystemCallData->Argument[4],
+                           (INT32 *)SystemCallData->Argument[5]);
             break;
 
         case SYSNUM_DISK_READ:
@@ -253,7 +253,7 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
                       (char *)SystemCallData->Argument[2]);
             break;
 
-	    default:  
+        default:  
             printf( "ERROR!  call_type not recognized!\n" ); 
             printf( "Call_type is - %i\n", call_type);
     }   
@@ -272,8 +272,8 @@ void    svc( SYSTEM_CALL_DATA *SystemCallData ) {
 void    osInit( int argc, char *argv[]  ) {
     void                *next_context;
     INT32               i;
-    INT32		pid = 0;
-    INT32		error = NO_ERROR_OCURR;
+    INT32       pid = 0;
+    INT32       error = NO_ERROR_OCURR;
     CURRENT_RUNNING_PROCESS = 0;
 
 
@@ -296,20 +296,20 @@ void    osInit( int argc, char *argv[]  ) {
     mq.NumOfMNode = 0;
 
 
-	/*  Initialize the Disk Queue.    */
+    /*  Initialize the Disk Queue.    */
     for(i = 0; i <= MAX_NUMBER_OF_DISKS; i++){
-    	dq[i] = (DiskQueue *)calloc(1,sizeof(DiskQueue));
-    	lastDiskAct[i] = 0;
+        dq[i] = (DiskQueue *)calloc(1,sizeof(DiskQueue));
+        lastDiskAct[i] = 0;
     }
     
     MyInterruptStatus = -1;
     
     /*  Initialize the Frame Table.    */
-	memset(FrameTable,0,PHYS_MEM_PGS);
-	
-	/*  Initialize the Page load list.    */
-	pageLoadList.head = NULL;
-	pageLoadList.rear = NULL;
+    memset(FrameTable,0,PHYS_MEM_PGS);
+    
+    /*  Initialize the Page load list.    */
+    pageLoadList.head = NULL;
+    pageLoadList.rear = NULL;
 
     /* Demonstrates how calling arguments are passed thru to here       */
     printf( "Program called with %d arguments:", argc );
@@ -333,25 +333,25 @@ void    osInit( int argc, char *argv[]  ) {
     /*  This should be done by a "os_make_process" routine, so that
         test0 runs on a process recognized by the operating system.    */
     
-	//we cut these 2 line codes and paste it in function os_CreateProcess.
+    //we cut these 2 line codes and paste it in function os_CreateProcess.
 
     /*    Determine which test routines to run.    */
     if(argv[1][4] == '0'){
         CreateProcess("proc-test0", (void *)test0, DEFAULT_PROCESS_PRIORITY, &pid, &error);
         CURRENT_RUNNING_PROCESS = pid;                 
-        CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));	
+        CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) )); 
     }    
     else if(argv[1][4] == '1'){
         switch(argv[1][5]){
    
             case 'a':
                 CreateProcess("proc-test1a", (void *)test1a, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-		        CURRENT_RUNNING_PROCESS = pid;	
-		        CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));		
+                CURRENT_RUNNING_PROCESS = pid;  
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));     
                 break;
    
             case 'b':
-		        CreateProcess("proc-test1b", (void *)test1b, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CreateProcess("proc-test1b", (void *)test1b, DEFAULT_PROCESS_PRIORITY, &pid, &error);
                 CURRENT_RUNNING_PROCESS = pid;                 
                 CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
                 break;
@@ -410,61 +410,61 @@ void    osInit( int argc, char *argv[]  ) {
                 CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
                 break;
 
-	        default:
+            default:
                 printf("Error:Unknown test routine: %s.\n",argv[1]);
         }
     }
     else {
-		switch(argv[1][5]){
-		    case 'a':
-	            CreateProcess("proc-test2a", (void *)test2a, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	            break;
+        switch(argv[1][5]){
+            case 'a':
+                CreateProcess("proc-test2a", (void *)test2a, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'b':
-	            CreateProcess("proc-test2b", (void *)test2b, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	            break;
+            case 'b':
+                CreateProcess("proc-test2b", (void *)test2b, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'c':
-	            CreateProcess("proc-test2c", (void *)test2c, 1, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	            break;
+            case 'c':
+                CreateProcess("proc-test2c", (void *)test2c, 1, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'd':
-	            CreateProcess("proc-test2d", (void *)test2d, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	            break;
+            case 'd':
+                CreateProcess("proc-test2d", (void *)test2d, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'e':
-	            CreateProcess("proc-test2e", (void *)test2e, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	        	break;
+            case 'e':
+                CreateProcess("proc-test2e", (void *)test2e, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'f':
-	            CreateProcess("proc-test2f", (void *)test2f, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	        	break;
+            case 'f':
+                CreateProcess("proc-test2f", (void *)test2f, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        case 'g':
-	            CreateProcess("proc-test2g", (void *)test2g, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            printf("%d\n",(INT32)Z502_MODE);
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	        	break;
+            case 'g':
+                CreateProcess("proc-test2g", (void *)test2g, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                printf("%d\n",(INT32)Z502_MODE);
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;
 
-	        /*case 'z':
-	            CreateProcess("proc-test2z", (void *)test2z, DEFAULT_PROCESS_PRIORITY, &pid, &error);
-	            CURRENT_RUNNING_PROCESS = pid;
-	            CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
-	            break;*/
-		}
+            /*case 'z':
+                CreateProcess("proc-test2z", (void *)test2z, DEFAULT_PROCESS_PRIORITY, &pid, &error);
+                CURRENT_RUNNING_PROCESS = pid;
+                CALL(Z502SwitchContext( SWITCH_CONTEXT_KILL_MODE, &(PidToPtr(pid)->ptr_context) ));
+                break;*/
+        }
     }
 }                                               // End of osInit
 

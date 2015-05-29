@@ -1593,11 +1593,11 @@ void test2f(void) {
 
             // Record in our data-base that we've accessed this page
             mtr->page_touched[(short) Loops] = Z502_REG7;
-			//system("pause");
+            //system("pause");
         }   // End of for Loops
 
-		MP_print_line();
-		//system("pause");
+        MP_print_line();
+        //system("pause");
         for (Loops = 0; Loops < LOOP_COUNT; Loops++) {
 
             // We can only read back from pages we've previously
@@ -2013,15 +2013,15 @@ void testStartCode() {
  simulator is invoked.
  *****************************************************************/
 int main(int argc, char *argv[]) {
-	int i;
-	argv[1] = "test2f";
-	for (i = 0; i < MAX_NUMBER_OF_USER_THREADS; i++) {
-		Z502CreateUserThread(testStartCode);
-	}
-	osInit(argc, argv);
-	// We should NEVER return from this routine.  The result of
-	// osInit is to select a program to run, to start a process
-	// to execute that program, and NEVER RETURN!
-	return (-1);
+    int i;
+    argv[1] = "test2f";
+    for (i = 0; i < MAX_NUMBER_OF_USER_THREADS; i++) {
+        Z502CreateUserThread(testStartCode);
+    }
+    osInit(argc, argv);
+    // We should NEVER return from this routine.  The result of
+    // osInit is to select a program to run, to start a process
+    // to execute that program, and NEVER RETURN!
+    return (-1);
 }    // End of main
 

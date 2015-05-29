@@ -25,8 +25,8 @@
 #define         MAXVALUE_OF_PROCESS_PRIORITY    100
 #define         MINVALUE_OF_PROCESS_PRIORITY    0
 
-#define		    PROCESS_NON_SUSPEND_STATE		1
-#define   	    PROCESS_SUSPEND_STATE			2
+#define         PROCESS_NON_SUSPEND_STATE       1
+#define         PROCESS_SUSPEND_STATE           2
 
 /*  Error code for CreateProcess  */
 /*  Error code 0 has been used (ERR_SUCCESS, which means no error ocurres.)  */
@@ -36,18 +36,18 @@
 #define         ERROR_PROCESS_NOT_EXIST             5
 #define         ERROR_PROCESS_OVERLOAD              -1
 #define         ERROR_GET_PID_FAILED                6
-#define 	    ERROR_PID_SUSPEND_ILLEGAL	        7
-#define		    ERROR_PID_RESUME_ILLEGAL	        8
-#define		    ERROR_PROCESS_ALREADY_SUSPEND	    9
-#define		    ERROR_PROCESS_ALREADY_RESUME	    10
-#define		    ERROR_RESUME_NON_SUSPEND_PROCESS	11
-#define		    ERROR_RESUME_TIMER_BLOCK_PROCESS	12
+#define         ERROR_PID_SUSPEND_ILLEGAL           7
+#define         ERROR_PID_RESUME_ILLEGAL            8
+#define         ERROR_PROCESS_ALREADY_SUSPEND       9
+#define         ERROR_PROCESS_ALREADY_RESUME        10
+#define         ERROR_RESUME_NON_SUSPEND_PROCESS    11
+#define         ERROR_RESUME_TIMER_BLOCK_PROCESS    12
 #define         ERROR_CHANGE_PRIORITY_PID_ILLEGAL   13
 #define         ERROR_CHANGE_PRIORITY_ILLEGAL       14
-#define		    ERROR_ILLEGAL_MSG_PID			    15	
-#define	        ERROR_ILLEGAL_MSG_LENGTH		    16
-#define		    ERROR_MSG_BUF_OVERLOAD			    17
-#define		    ERROR_MSG_RCV_BUF_ILLEGAL		    18
+#define         ERROR_ILLEGAL_MSG_PID               15  
+#define         ERROR_ILLEGAL_MSG_LENGTH            16
+#define         ERROR_MSG_BUF_OVERLOAD              17
+#define         ERROR_MSG_RCV_BUF_ILLEGAL           18
 
 typedef INT32           BOOL;
 
@@ -58,25 +58,25 @@ struct PageLoadList;
 
 /*  Definition PCB  */
 typedef struct pcb1{
-    struct pcb1 *   	next;
-    struct pcb1 *   	pre;
-    char *         	    process_name;
-    void *         	    starting_address;
+    struct pcb1 *       next;
+    struct pcb1 *       pre;
+    char *              process_name;
+    void *              starting_address;
     INT32               priority;
     INT32               process_id;
     INT32               parent_pid;
-	INT32		        state;
+    INT32               state;
     INT32               error;
     struct TNode *      ptr_TNode;
     struct RNode *      ptr_RNode;
-    struct DiskBlock *	ptr_DNode;
+    struct DiskBlock *  ptr_DNode;
     void *              ptr_context;
 }PCB, * Ptr_PCB;
 
 
 /*  Define ProcessTable */
 typedef struct {
-	INT32               NumOfProcess;
+    INT32               NumOfProcess;
     Ptr_PCB             next;
 }ProcessTable;
               
@@ -124,16 +124,16 @@ void    TerminateProcess(INT32 , INT32 * );
 Ptr_PCB PidToPtr(INT32 );
 void    Get_Process_ID(char * , INT32 * , INT32 *);
 void    ChangePriority(INT32 , INT32 , INT32 *);
-void 	Dispatcher(INT32);
-void 	AddToTimerQueue(INT32 , INT32 );
-void 	RemoveFromTimerQueue(Ptr_PCB *);
-void 	AddToReadyQueue(Ptr_PCB );
-void 	RemoveFromReadyQueue(Ptr_PCB * );
+void    Dispatcher(INT32);
+void    AddToTimerQueue(INT32 , INT32 );
+void    RemoveFromTimerQueue(Ptr_PCB *);
+void    AddToReadyQueue(Ptr_PCB );
+void    RemoveFromReadyQueue(Ptr_PCB * );
 void    ClearTimerQueue(Ptr_TNode );
 void    ClearReadyQueue(Ptr_RNode );
 void    OrderReadyQueue(Ptr_RNode );
 void    FreshTimer();
-void 	PrintReadyQueue();
+void    PrintReadyQueue();
 
 
 //Global virables
@@ -160,42 +160,42 @@ extern Z502CONTEXT * Z502_CURRENT_CONTEXT;
 /*  Define Disk Queue Node  */
 typedef struct DiskBlock{
     struct DiskBlock *   next;
-    Ptr_PCB         	 ppcb;
+    Ptr_PCB              ppcb;
     INT32                read_or_write;
-	INT16                disk_id;
-	INT16                sector;
-	char *               data;
+    INT16                disk_id;
+    INT16                sector;
+    char *               data;
 }DiskBlock, * PDiskBlock;
 
 
 typedef struct DiskQueue{
-	INT32	             NumOfDNode;
-	PDiskBlock           head;
-	PDiskBlock           rear;
+    INT32                NumOfDNode;
+    PDiskBlock           head;
+    PDiskBlock           rear;
 }DiskQueue;
 
 
 typedef struct PLNode{
-	INT32	             frameNum;		
-	struct               PLNode * next;
+    INT32                frameNum;      
+    struct               PLNode * next;
 }PLNode, * ptr_PLNode;
 
 
 typedef struct PageLoadList{
-	ptr_PLNode 	head;
-	ptr_PLNode 	rear;
+    ptr_PLNode  head;
+    ptr_PLNode  rear;
 }PageLoadList;
 
 
-INT32	FrameTable[PHYS_MEM_PGS];
+INT32   FrameTable[PHYS_MEM_PGS];
 
 PageLoadList pageLoadList;
 
-DiskQueue *	dq[MAX_NUMBER_OF_DISKS+1];
+DiskQueue * dq[MAX_NUMBER_OF_DISKS+1];
 
-INT32	MyInterruptStatus;
+INT32   MyInterruptStatus;
 
-INT32	lastDiskAct[13];
+INT32   lastDiskAct[13];
 
 extern char MEMORY[PHYS_MEM_PGS * PGSIZE ];
 

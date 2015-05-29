@@ -114,12 +114,12 @@ typedef struct
 // This is the information we need for each thread.
 
 typedef struct {
-	int OurLocalID;
-	int ThreadID;
-	int CurrentState;
-	Z502CONTEXT *Context;
-	UINT32 Condition;
-	UINT32 Mutex;
+    int OurLocalID;
+    int ThreadID;
+    int CurrentState;
+    Z502CONTEXT *Context;
+    UINT32 Condition;
+    UINT32 Mutex;
 } THREAD_INFO;
 
 // These are the states defined for a thread and stored in CurrentState

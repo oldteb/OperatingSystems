@@ -115,8 +115,8 @@ typedef         int                             BOOL;
 #define      MEMORY_INTERLOCK_SIZE              0x00000100
 #define      MEMORY_INTERLOCK_READY_QUEUE       0x7FE00010
 #define      MEMORY_INTERLOCK_DISK_QUEUE        0x7FE00014
-#define      MEMORY_INTERLOCK_DISK      	    0x7FE00020
-#define      xxx      	                        0x7FE00030
+#define      MEMORY_INTERLOCK_DISK              0x7FE00020
+#define      xxx                                0x7FE00030
 
 
 /*  These are the device IDs that are produced when an interrupt
@@ -138,9 +138,9 @@ typedef         int                             BOOL;
 #define         DISK_INTERRUPT_DISK3            (short)7
 #define         DISK_INTERRUPT_DISK4            (short)8
 #define         DISK_INTERRUPT_DISK5            (short)9
-#define         DISK_INTERRUPT_DISK6           	(short)10
-#define         DISK_INTERRUPT_MAX           	(short)10
-#define			DISK_ID( arg1 )		 ( (int)arg1-4 ) 
+#define         DISK_INTERRUPT_DISK6            (short)10
+#define         DISK_INTERRUPT_MAX              (short)10
+#define         DISK_ID( arg1 )      ( (int)arg1-4 ) 
 
 /*      ... we could define other explicit names here           */
 #define         LARGEST_STAT_VECTOR_INDEX       DISK_INTERRUPT + \
@@ -169,10 +169,10 @@ typedef         int                             BOOL;
 #define         ERR_OS502_GENERATED_BUG                 21L
 
 
-#define			D_WRITE			    1
-#define			D_READ			    0
-#define    		INTERRUPT_FREE		0
-#define    		INTERRUPT_IN_USE	1
+#define         D_WRITE             1
+#define         D_READ              0
+#define         INTERRUPT_FREE      0
+#define         INTERRUPT_IN_USE    1
 
 
 
