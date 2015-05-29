@@ -1,8 +1,11 @@
 /***********************************************************************
+ schedule.c
 
-    schedule.c
-	This functions in this file is to implement the ready queue and
-	timer queue. The declearation fof the functions are in process.h
+ Author:                 Yunhe Tang
+ Complete Time:          10/18/2013
+ 
+ This functions in this file is to implement the ready queue and
+ timer queue. The declearation fof the functions are in process.h
 
 ************************************************************************/
 #include             "global.h"
@@ -10,20 +13,19 @@
 #include             "protos.h"
 #include             "string.h"
 #include             "stdlib.h"
-#include	     "process.h"
-
-
+#include	     	 "process.h"
 
 
 /***********************************************************************
 
     Dispatcher
-	The only way that a running process actively gives up CPU and 
-    transer control to other ready process. If there is no other process
-    ready, then wait. If there is no other process in ready queue as well
-    as in timer queue, and in KILL MODE, then Halt.
+		The only way that a running process actively gives up CPU and 
+    	transer control to other ready process. If there is no other process
+    	ready, then wait. If there is no other process in ready queue as well
+    	as in timer queue, and in KILL MODE, then Halt.
 
 ************************************************************************/
+
 void Dispatcher(INT32 save_or_kill){
 	Ptr_PCB next_PCB = NULL;
 	
@@ -45,17 +47,16 @@ void Dispatcher(INT32 save_or_kill){
 
 }
 
+
 /***********************************************************************
 
     AddToTimerQueue
-	Add the new timer node to the timer queue.
+		Add the new timer node to the timer queue.
 
 ************************************************************************/
 
-
-
 void AddToTimerQueue(INT32 add_PID, INT32 TimeUnits){
-        Ptr_TNode add_TNode = NULL;
+    Ptr_TNode add_TNode = NULL;
 	Ptr_TNode curr_TNode;
 	INT32 currtime;
 	INT32 waketime;
@@ -66,7 +67,6 @@ void AddToTimerQueue(INT32 add_PID, INT32 TimeUnits){
 		return;
 	}
 	
-
 	/*    Make a timer node    */
 	MEM_READ( Z502ClockStatus, &currtime );
 	waketime = currtime + TimeUnits;
@@ -83,20 +83,20 @@ void AddToTimerQueue(INT32 add_PID, INT32 TimeUnits){
 	else {
 		if(tq.head->waketime > waketime){
 			add_TNode->next = tq.head;
-        	        tq.head  	= add_TNode;
+        	tq.head  	= add_TNode;
 		}
 		else {
 			curr_TNode = tq.head;
-                	while(curr_TNode->next != NULL){
-                        	if(curr_TNode->next->waketime > waketime){
-                                	add_TNode->next  = curr_TNode->next;
-                                	curr_TNode->next = add_TNode;
-                        		break;
+            while(curr_TNode->next != NULL){
+                if(curr_TNode->next->waketime > waketime){
+                    add_TNode->next  = curr_TNode->next;
+                    curr_TNode->next = add_TNode;
+                    break;
 				}
-                        	curr_TNode = curr_TNode->next;
-                	}
+                curr_TNode = curr_TNode->next;
+            }
 			if(curr_TNode->next == NULL)
-                		curr_TNode->next = add_TNode;
+                curr_TNode->next = add_TNode;
 		}		
 	}	
 	NUM_OF_TNODE++;
@@ -106,10 +106,11 @@ void AddToTimerQueue(INT32 add_PID, INT32 TimeUnits){
 	FreshTimer();	
 }
 
+
 /***********************************************************************
 
     RemoveFromTimerQueue
-	Remove the indicating timer node from the timer queue.
+		Remove the indicating timer node from the timer queue.
 
 ************************************************************************/
 
@@ -138,10 +139,11 @@ void RemoveFromTimerQueue(Ptr_PCB *  next_PCB){
 	FreshTimer();
 }
 
+
 /***********************************************************************
 
     AddToReadyQueue
-	Add the new ready node to the ready queue.
+		Add the new ready node to the ready queue.
 
 ************************************************************************/
 
@@ -154,8 +156,8 @@ void AddToReadyQueue(Ptr_PCB ppcb){
 
 	/*    Chenck if there is additional space for new node    */
 	if(NUM_OF_RNODE >= SIZE_OF_PROCESS_TABLE-1){
-                printf("Error:Too many RNode on ready queue.\n");
-        }
+        printf("Error:Too many RNode on ready queue.\n");
+    }
 	else {
 		/*    Make a new node    */
 		add_RNode = malloc(sizeof(RNode));
@@ -195,7 +197,7 @@ void AddToReadyQueue(Ptr_PCB ppcb){
 /***********************************************************************
 
     RemoveFromReadyQueue
-	Remove the ready node from ready queue.
+		Remove the ready node from ready queue.
 
 ************************************************************************/
 
@@ -216,17 +218,16 @@ void RemoveFromReadyQueue(Ptr_PCB * next_PPCB){
 
 	else {
 		/*    Remove from ready queue    */
-        	//printf("the higheset priority: %d\n",rq.head->ppcb->priority);;
-        	*next_PPCB = rq.head->ppcb;
-        	rmv_RNode = rq.head;
-        	rq.head = rmv_RNode->next;
-        	NUM_OF_RNODE--;
+        *next_PPCB = rq.head->ppcb;
+        rmv_RNode = rq.head;
+        rq.head = rmv_RNode->next;
+        NUM_OF_RNODE--;
 
-        	(*next_PPCB)->ptr_RNode = NULL;
+        (*next_PPCB)->ptr_RNode = NULL;
 
-        	if(NUM_OF_RNODE == 0)
-                	rq.rear = NULL;
-        	free(rmv_RNode);
+        if(NUM_OF_RNODE == 0)
+           	rq.rear = NULL;
+        free(rmv_RNode);
 	
 	}
 
@@ -243,7 +244,7 @@ void RemoveFromReadyQueue(Ptr_PCB * next_PPCB){
 /***********************************************************************
 
     ClearTimerQueue
-	Take out indicating timer node from timer queue.
+		Take out indicating timer node from timer queue.
 
 ************************************************************************/
 
@@ -278,37 +279,36 @@ void ClearTimerQueue(Ptr_TNode ptr_TNode){
 /***********************************************************************
 
     ClearReadyQueue
-	Take off indicating ready node from ready queue.
+		Take off indicating ready node from ready queue.
 
 ************************************************************************/
 
 void ClearReadyQueue(Ptr_RNode ptr_RNode){
 	Ptr_RNode curr_RNode = NULL;
 	Z502MemoryReadModify(MEMORY_INTERLOCK_READY_QUEUE,1,TRUE,&LockError);
-        curr_RNode = rq.head;
+    curr_RNode = rq.head;
 	
-	if(ptr_RNode == NULL){
-        }
-        else if(curr_RNode == NULL){
-                printf("Error:No RNode in ReadyQueue.\n");
-        }
-        else if(curr_RNode == ptr_RNode){
-                rq.head = curr_RNode->next;
-                free(ptr_RNode);
-                NUM_OF_RNODE--;
-        }
+	if(ptr_RNode == NULL){}
+    else if(curr_RNode == NULL){
+        printf("Error:No RNode in ReadyQueue.\n");
+    }
+    else if(curr_RNode == ptr_RNode){
+        rq.head = curr_RNode->next;
+        free(ptr_RNode);
+        NUM_OF_RNODE--;
+    }
 	else {
 		do{
-                	if(curr_RNode->next == ptr_RNode){
-                        	curr_RNode->next = ptr_RNode->next;
-                        	free(ptr_RNode);
-                        	NUM_OF_RNODE--;
+            if(curr_RNode->next == ptr_RNode){
+                curr_RNode->next = ptr_RNode->next;
+                free(ptr_RNode);
+                NUM_OF_RNODE--;
 				break;
-                	}
-                	curr_RNode = curr_RNode->next;
-        	}while(curr_RNode != NULL);
-
+            }
+            curr_RNode = curr_RNode->next;
+        }while(curr_RNode != NULL);
 	}
+
 	Z502MemoryReadModify(MEMORY_INTERLOCK_READY_QUEUE,0,TRUE,&LockError);
 }
 
@@ -316,24 +316,23 @@ void ClearReadyQueue(Ptr_RNode ptr_RNode){
 /***********************************************************************
 
     OrderReadyQueue
-	Reorder the ready queue to guarantee the process with higher
-    priority can be scheduled first.
+		Reorder the ready queue to guarantee the process with higher
+    	priority can be scheduled first.
 
 ************************************************************************/
 
 void OrderReadyQueue(Ptr_RNode mdf_RNode){
-        Ptr_PCB mdf_PCB = mdf_RNode->ppcb;
-
-        ClearReadyQueue(mdf_RNode);
-        AddToReadyQueue(mdf_PCB);
+    Ptr_PCB mdf_PCB = mdf_RNode->ppcb;
+    ClearReadyQueue(mdf_RNode);
+    AddToReadyQueue(mdf_PCB);
 }
 
 
 /***********************************************************************
 
     FreshTimer
-	Whenever the timer queue is changed, this routine is called to
-    check if it is necessary to reset the timer.
+		Whenever the timer queue is changed, this routine is called to
+    	check if it is necessary to reset the timer.
 
 ************************************************************************/
 
@@ -342,21 +341,21 @@ void FreshTimer(){
 	INT32 TimeUnits;
 	
 	if(NUM_OF_TNODE == 0){
-                return;
-        }
+        return;
+    }
 	
 	/*    Get the current time    */
-        MEM_READ( Z502ClockStatus, &currtime );
+    MEM_READ( Z502ClockStatus, &currtime );
 
 	/*    Chenck if reset the timer    */
-        if(currtime >= tq.head->waketime){
-                TimeUnits = 0;
-                MEM_WRITE(Z502TimerStart, &TimeUnits);
-        }
-        else {
-                TimeUnits = tq.head->waketime - currtime;
+    if(currtime >= tq.head->waketime){
+        TimeUnits = 0;
+        MEM_WRITE(Z502TimerStart, &TimeUnits);
+    }
+    else {
+        TimeUnits = tq.head->waketime - currtime;
 		MEM_WRITE(Z502TimerStart, &TimeUnits);
-        }
+    }
 }
 
 

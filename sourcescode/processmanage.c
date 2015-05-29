@@ -1,9 +1,12 @@
 /************************************************************************
 
     processmanage.c	
+
+	Author:                 Yunhe Tang
+ 	Complete Time:          10/18/2013
+
 	This functions in this file is to implement the process managing
 	function. The declearation fof the functions are in process.h
-
 
 ************************************************************************/
 
@@ -17,10 +20,9 @@
 
 /***********************************************************************
     start_timer
-	
-	This is the system service routine(a kernel program) that starts 
-	the timer and block itself for particular time units till the 
-	interrupt occures.
+		This is the system service routine(a kernel program) that starts 
+		the timer and block itself for particular time units till the 
+		interrupt occures.
 
 ************************************************************************/
 
@@ -30,7 +32,6 @@ void start_timer(INT32 TimeUnits){
 	INT32		error;
 	INT32		waketime;
 
-	
 	CALL(MEM_READ(Z502TimerStatus, &Status);)
 	MEM_READ( Z502ClockStatus, &waketime );
 	waketime+=TimeUnits;
@@ -44,10 +45,10 @@ void start_timer(INT32 TimeUnits){
 
 /************************************************************************
     CreateProcess
-        This routine creates a new process. it prepares kernel data for a 
-	new creating process. It will check the	validation of the assigned
-	process value, create PCB, mount on the process table. Then run 
-	the new process. 
+		This routine creates a new process. it prepares kernel data for a 
+		new creating process. It will check the	validation of the assigned
+		process value, create PCB, mount on the process table. Then run 
+		the new process. 
 	
 ************************************************************************/
 
@@ -56,12 +57,9 @@ void CreateProcess(   char * process_name,
 	INT32 	initial_priority,
 	INT32 * 	process_id,
 	INT32 * 	error){
-
 	void * 		next_context = NULL;
 	Ptr_PCB		new_PCB = NULL;
 	char *		pname = NULL;
-
-
 	*error = ERR_SUCCESS;
 
 	//Check the validation of the input value.
@@ -78,7 +76,6 @@ void CreateProcess(   char * process_name,
 	/*    Check the initial priority.    */
 	if(initial_priority > MAXVALUE_OF_PROCESS_PRIORITY 
 	     	|| initial_priority < MINVALUE_OF_PROCESS_PRIORITY ){
-		
 		*error = ERROR_PROCESS_PRIORITY_ILLEGAL;
 		printf("Error:The initial process priority is illegal. (valid range of priority is between %d and %d.)\n",MINVALUE_OF_PROCESS_PRIORITY,MAXVALUE_OF_PROCESS_PRIORITY);	
 	}
@@ -90,15 +87,14 @@ void CreateProcess(   char * process_name,
 		printf("Error:Too much processes running! (Linux can run at most %d processes in the same time.\n)",SIZE_OF_PROCESS_TABLE);
 	}
 
-
-
 	if(*error == 0){
-                /*    Initialize the PCB    */
-                new_PCB = (Ptr_PCB)calloc(1,sizeof(PCB));
-                /*    Initialize process_name.    */
-                pname = (char *)malloc(strlen(process_name)+1);
-                strcpy(pname,process_name);
-                new_PCB->process_name = pname;
+        /*    Initialize the PCB    */
+        new_PCB = (Ptr_PCB)calloc(1,sizeof(PCB));
+
+        /*    Initialize process_name.    */
+        pname = (char *)malloc(strlen(process_name)+1);
+        strcpy(pname,process_name);
+        new_PCB->process_name = pname;
 
 		Z502MakeContext( &new_PCB->ptr_context, starting_address, USER_MODE );
 		/*		Initialize page table		*/
@@ -118,19 +114,13 @@ void CreateProcess(   char * process_name,
 		new_PCB->ptr_TNode = NULL;
 		new_PCB->ptr_RNode = NULL;	
 		new_PCB->ptr_DNode = NULL;
-		
-		//new_PCB->pageLoadList = (PageLoadList *)malloc(sizeof(PageLoadList));
-		//new_PCB->pageLoadList->head = NULL;
-		//new_PCB->pageLoadList->rear = NULL;
-		
-        	AddToProcessTable(new_PCB);
-        	*process_id = new_PCB->process_id;      //End of PCB initializing.
-		//printf("new_pid = %d,priority = %d\n",new_PCB->process_id,new_PCB->priority);
+        AddToProcessTable(new_PCB);
+        *process_id = new_PCB->process_id;      //End of PCB initializing.
 
 		if(CURRENT_RUNNING_PROCESS != 0){
 			AddToReadyQueue(new_PCB);
 		}
-        }       //End of PCB creation.
+    }       //End of PCB creation.
 
 }
 
@@ -147,7 +137,6 @@ void TerminateProcess(INT32 free_PID, INT32 * error){
 	Ptr_PCB pPCB = NULL;
 	Z502CONTEXT* pre_context = NULL;
 	INT32 ppid = 0;
-
 
 	//Set the error code ERR_SUCCESS
 	*error = ERR_SUCCESS;	
@@ -174,7 +163,7 @@ void TerminateProcess(INT32 free_PID, INT32 * error){
 	free_PCB = PidToPtr(free_PID);
 
 	/*    Remove PCB from table    */
-        RemoveFromProcessTable(free_PCB);
+    RemoveFromProcessTable(free_PCB);
        
 	/*    Deconstruct content of PCB    */
 	/*    Free PCB    */
@@ -182,13 +171,13 @@ void TerminateProcess(INT32 free_PID, INT32 * error){
 	ClearReadyQueue(free_PCB->ptr_RNode);
 	
 	free(free_PCB->process_name);
-        free(free_PCB);
+    free(free_PCB);
 
 	NUM_OF_PROCESS--;
 
 	if(free_PID == CURRENT_RUNNING_PROCESS){
 		Dispatcher(SWITCH_CONTEXT_KILL_MODE);
-        }
+    }
 }
 
 
@@ -206,13 +195,13 @@ Ptr_PCB PidToPtr(INT32 Pid){
 		return; 
 	}
 
-        if(pt.next != NULL){
-        	do{
-                	if(curr_PCB->process_id == Pid)
-                        	return curr_PCB;
-                	curr_PCB = curr_PCB->next;
-        	}
-        	while(curr_PCB != NULL);
+    if(pt.next != NULL){
+      	do{
+            if(curr_PCB->process_id == Pid)
+                return curr_PCB;
+            curr_PCB = curr_PCB->next;
+        }
+       	while(curr_PCB != NULL);
 	}
 	else {
 		printf("Error:Process with identified Pid %d does not exist.\nYou should never see this error.\n",Pid);
@@ -223,7 +212,7 @@ Ptr_PCB PidToPtr(INT32 Pid){
 /************************************************************************
     isProcessExistbyName
         Check if is there a process that have the same name with the new 
-	process. If it does, return FAULS. Otherwise, return TRUE. 
+		process. If it does, return FAULS. Otherwise, return TRUE. 
 
 ************************************************************************/
 
@@ -232,6 +221,7 @@ BOOL isProcessExistbyName(char * pname){
 	INT32	cmp = 0;
 	if(pt.next == NULL)
 		return FALSE;
+
 	do{
 		if((cmp = strcmp(curr_PCB->process_name, pname)) == 0)
 			return TRUE;
@@ -250,25 +240,25 @@ BOOL isProcessExistbyName(char * pname){
 ************************************************************************/
 
 BOOL isProcessExistbyPid(INT32 Pid){
-        Ptr_PCB curr_PCB = pt.next;
-        INT32   cmp = 0;
-        if(pt.next == NULL)
-                return FALSE;
-        do{
-                if(curr_PCB->process_id == Pid)
-                        return TRUE;
-                curr_PCB = curr_PCB->next;
-        }
-        while(curr_PCB != NULL);
-
+    Ptr_PCB curr_PCB = pt.next;
+    INT32   cmp = 0;
+    if(pt.next == NULL)
         return FALSE;
+    do{
+        if(curr_PCB->process_id == Pid)
+            return TRUE;
+        urr_PCB = curr_PCB->next;
+    }
+    while(curr_PCB != NULL);
+
+    return FALSE;
 }
 
 
 /************************************************************************
     getTailOfProcessTable
     	Find the last exist PCB in process table, and return its address.
-	If there is no PCB in process table, then return NULL.     
+		If there is no PCB in process table, then return NULL.     
 
 ************************************************************************/
 
@@ -285,9 +275,9 @@ Ptr_PCB getTailOfProcessTable(){
 /************************************************************************
     getMinAvaliablePid
         Return the minimum avaliable process id. Since the process table  
-	is in pid increasing order, we simply find the minimum pid from 
-	the begining of process table. If there is no avaliable pid, which
-	means the process is overload, return ERROR_PROCESS_OVERLOAD.  
+		is in pid increasing order, we simply find the minimum pid from 
+		the begining of process table. If there is no avaliable pid, which
+		means the process is overload, return ERROR_PROCESS_OVERLOAD.  
 	
 ************************************************************************/
 
@@ -299,16 +289,16 @@ INT32 getMinAvaliablePid(){
 	if(pt.next == NULL)
 		MinPid = 1;
 	else {
-        	while(curr_PCB != NULL){
-                	if(curr_PCB->next != NULL){
-                        	if(curr_PCB->process_id == curr_PCB->next->process_id-1){
-                                	curr_PCB = curr_PCB->next;
-                                	continue;
-                        	}
-                	}
-                	MinPid = curr_PCB->process_id+1;
+        while(curr_PCB != NULL){
+            if(curr_PCB->next != NULL){
+                if(curr_PCB->process_id == curr_PCB->next->process_id-1){
+                    curr_PCB = curr_PCB->next;
+                    continue;
+                }
+            }
+            MinPid = curr_PCB->process_id+1;
 			break;
-        	}
+        }
 	}
 
 	/*    Check if the pid is valid    */
@@ -322,8 +312,8 @@ INT32 getMinAvaliablePid(){
 
 /************************************************************************
     AddToProcessTable
-         Add a PCB block into the process table. The input is a pointer 
-    to the existing PCB block.
+        Add a PCB block into the process table. The input is a pointer 
+    	to the existing PCB block.
 
 ************************************************************************/
 
@@ -347,20 +337,20 @@ void AddToProcessTable(Ptr_PCB add_PCB){
 			/*    Insert as the first node in table    */
 			if(curr_PCB->pre == NULL){
 				add_PCB->next    = curr_PCB;
-                		add_PCB->pre     = NULL;
-                		pt.next          = add_PCB;
-                		curr_PCB->pre    = add_PCB;
-                		NUM_OF_PROCESS++;
-                		return;
+                add_PCB->pre     = NULL;
+                pt.next          = add_PCB;
+                curr_PCB->pre    = add_PCB;
+                NUM_OF_PROCESS++;
+                return;
 			}
 			else {
 				/*    Normal case    */
-                        	add_PCB->next      = curr_PCB;
-                        	add_PCB->pre       = curr_PCB->pre;
-                        	curr_PCB->pre      = add_PCB;
-                        	add_PCB->pre->next = add_PCB;
-                        	NUM_OF_PROCESS++;
-                        	return;
+                add_PCB->next      = curr_PCB;
+                add_PCB->pre       = curr_PCB->pre;
+                curr_PCB->pre      = add_PCB;
+                add_PCB->pre->next = add_PCB;
+                NUM_OF_PROCESS++;
+                return;
 			}
 		}
 		curr_PCB = curr_PCB->next;
@@ -378,27 +368,25 @@ void AddToProcessTable(Ptr_PCB add_PCB){
 	NUM_OF_PROCESS++;
 
 	/*    Exception occurs.    */
-
 }
 
 
 /************************************************************************
     RemoveFromProcessTable
         Remove the target PCB block in the process table. If there is no 
-    such PCB in the process table, then do nothing.
+    	such PCB in the process table, then do nothing.
 
 ************************************************************************/
 
 void RemoveFromProcessTable(Ptr_PCB rmv_PCB){
 
 	/*    Check if the table has only one node    */
-        if(rmv_PCB->pre == NULL){
+    if(rmv_PCB->pre == NULL){
 		pt.next = rmv_PCB->next;
 		if(rmv_PCB->next != NULL)
 			rmv_PCB->next->pre = NULL;
-		
 	}
-        else {
+    else {
 		/*    Normal case    */
 		rmv_PCB->pre->next = rmv_PCB->next;
 		if(rmv_PCB->next != NULL)
@@ -410,7 +398,7 @@ void RemoveFromProcessTable(Ptr_PCB rmv_PCB){
 /************************************************************************
     Get_Process_ID
         Get the process id of indicating process, input the name of the 
-    process, put the pid into the space that process_id pointed to.
+    	process, put the pid into the space that process_id pointed to.
 
 ************************************************************************/
 
@@ -419,31 +407,31 @@ void Get_Process_ID(char * process_name, INT32 * process_id, INT32 * error){
 	
 	/*    Normal case    */
 	if(strlen(process_name) != 0){
-        	Ptr_PCB curr_PCB = pt.next;
-        	INT32   cmp = 0;
+       	Ptr_PCB curr_PCB = pt.next;
+        INT32   cmp = 0;
 		/*    Check if the table is empty    */
-        	if(pt.next == NULL){
+        if(pt.next == NULL){
 			*error =  ERROR_GET_PID_FAILED;
 			printf("Error:Process with assigned process name not found.\n");
 			*process_id = -1;
-                	return;
+        	return;
 		}
-        	do{
-			/*    NOrmal case    */
-                	if((cmp = strcmp(curr_PCB->process_name, process_name)) == 0){
+
+        do{
+			/*    Normal case    */
+            if((cmp = strcmp(curr_PCB->process_name, process_name)) == 0){
 				*process_id = curr_PCB->process_id;
 				return;
 			}
-                	curr_PCB = curr_PCB->next;
-        	}
-        	while(curr_PCB != NULL);
+            curr_PCB = curr_PCB->next;
+       	}
+        while(curr_PCB != NULL);
 		
 		/*    Check if get pid is failed    */
 		*error = ERROR_GET_PID_FAILED;
 		printf("Error:Process with assigned process name not found.\n");
 		*process_id = -1;
-        	return;
-
+        return;
 	}
 	else {
 		/*    Check if a current running process id should be return    */
@@ -455,8 +443,8 @@ void Get_Process_ID(char * process_name, INT32 * process_id, INT32 * error){
 /************************************************************************
     SuspendProcess
         Suspend the indicating process, if the process is in the ready 
-    queue, then remove it from the ready queue right away. A suspended 
-    process will not be scheduled only after it has been waked up.
+    	queue, then remove it from the ready queue right away. A suspended 
+    	process will not be scheduled only after it has been waked up.
 
 ************************************************************************/
 
@@ -491,15 +479,15 @@ void SuspendProcess(INT32 process_id, INT32 * error){
 		sus_PCB->state == PROCESS_NON_SUSPEND_STATE){
    		ClearReadyQueue(sus_PCB->ptr_RNode);
 		sus_PCB->state = PROCESS_SUSPEND_STATE;
-        }
+    }
 }
 
 
 /************************************************************************
     ResumeProcess
         Wake up the indicating process. If the process is not in a suspended 
-    state, then do nothing. Otherwise, wake up the process and put it into 
-    the ready queue.
+    	state, then do nothing. Otherwise, wake up the process and put it into 
+    	the ready queue.
 
 ************************************************************************/
 
@@ -534,38 +522,38 @@ void ResumeProcess(INT32 process_id, INT32 * error){
 /************************************************************************
     ChangePriority
         Change the priority of the indicating process, if the process is 
-    currently in the ready queue, adjust its position to where it should 
-    be to guarantee the process with higher rpiority can be scheduled first.
+    	currently in the ready queue, adjust its position to where it should 
+    	be to guarantee the process with higher rpiority can be scheduled first.
 
 ************************************************************************/
 
 void ChangePriority(INT32 process_id, INT32 new_priority, INT32 *error){
-        Ptr_PCB chg_PCB = NULL;
-        *error = ERR_SUCCESS;
+    Ptr_PCB chg_PCB = NULL;
+    *error = ERR_SUCCESS;
 	/*    Check the validation of inputs    */
-        if(process_id == -1){
-                ChangePriority(CURRENT_RUNNING_PROCESS,new_priority,error);
-                return;
-        }
-        if(!isProcessExistbyPid(process_id)){
-                printf("Error:Invalid Pid when change process priority.\n");
-                *error = ERROR_CHANGE_PRIORITY_PID_ILLEGAL;
-                return;
-        }
-        if(new_priority > MAXVALUE_OF_PROCESS_PRIORITY ||
-                new_priority < MINVALUE_OF_PROCESS_PRIORITY){
+    if(process_id == -1){
+        ChangePriority(CURRENT_RUNNING_PROCESS,new_priority,error);
+        return;
+    }
+    if(!isProcessExistbyPid(process_id)){
+        printf("Error:Invalid Pid when change process priority.\n");
+        *error = ERROR_CHANGE_PRIORITY_PID_ILLEGAL;
+        return;
+    }
+    if(new_priority > MAXVALUE_OF_PROCESS_PRIORITY ||
+        new_priority < MINVALUE_OF_PROCESS_PRIORITY){
 
-                printf("Error:Illegal new priority.\n");
-                *error = ERROR_CHANGE_PRIORITY_ILLEGAL;
-                return;
-        }
+        printf("Error:Illegal new priority.\n");
+        *error = ERROR_CHANGE_PRIORITY_ILLEGAL;
+        return;
+    }
 
 	/*    Change the priority of the process and reorder the ready queue    */
-        chg_PCB = PidToPtr(process_id);
-        chg_PCB->priority = new_priority;
-        if(chg_PCB->ptr_RNode != NULL){
-                OrderReadyQueue(chg_PCB->ptr_RNode);
-        }
+    chg_PCB = PidToPtr(process_id);
+    chg_PCB->priority = new_priority;
+    if(chg_PCB->ptr_RNode != NULL){
+        OrderReadyQueue(chg_PCB->ptr_RNode);
+    }
 }
 
 

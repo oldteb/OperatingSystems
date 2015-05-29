@@ -5,12 +5,8 @@
 
  Revision History:
  1.0 August 1990:        Initial release
- 1.1 Jan 1991:           Make system calls portable
- by using union of pointer
- and long.  Add incls for
- scheduler_printer.
- 1.2 Dec 1991;           Allow interrupts to occur in user code and in CALL
-                         statements.
+ 1.1 Jan 1991:           Make system calls portable by using union of pointer and long.  Add incls for scheduler_printer.
+ 1.2 Dec 1991;           Allow interrupts to occur in user code and in CALL statements.
  1.5 Aug 1993;           Add READ_MODIFY & DEFINE_SHARED_AREA support.
  2.0 Jan 2000;           Small changes
  2.1 May 2001;           Fix STEP macro.  DISK macros.
@@ -19,6 +15,12 @@
  3.1 Aug 2004:           hardware interrupt runs on separate thread
  3.11 Aug 2004:          Support for OS level locking
  3.30 July 2006:         Modify POP_THE_STACK to apply to base only
+
+ Final Version:
+ Author:                 Yunhe Tang
+ Complete Time:          12/10/2013
+ Contribution:           Fulfill the System calls
+
  *********************************************************************/
 #ifndef  SYSCALLS_H
 #define  SYSCALLS_H

@@ -1,3 +1,14 @@
+/**************************************************************************
+
+	memory.c
+
+	Author:                 Yunhe Tang
+ 	Complete Time:          12/10/2013
+
+
+**************************************************************************/
+
+
 #include             "global.h"
 #include             "syscalls.h"
 #include             "protos.h"
@@ -21,11 +32,8 @@ void PageFaultHandler(Z502CONTEXT* curr_context, INT32 VirtualPageNumber){
 	INT32 error;
 	INT32 new_FrameValue;
 	
-
-	
 	if(VirtualPageNumber >= VIRTUAL_MEM_PGS || VirtualPageNumber < 0){
 		printf("Error:Invalid memory address.\n");
-		//system("pause");
 		Z502Halt();
 	}
 	
@@ -70,7 +78,6 @@ INT32 SwapPage(INT32 pid, INT32 VirtualPageNumbe){
 	INT32 i;
 	INT32 frameNum32;
 	ptr_PLNode victim;
-	//ptr_PLNode head;
 	INT32 temp;
 	INT32 temp_pid;
 	INT32 temp_vpn;
@@ -102,16 +109,11 @@ INT32 SwapPage(INT32 pid, INT32 VirtualPageNumbe){
 	
 	if((frameNum16 & 0x4000) == 0x4000){    		// Check the Modified bit.
 		// Write back to disk.
-		//printf("Unexpected write back to disk.\n");
 		for(i=0; i<PGSIZE ;i++){
 			*(PageDataWrite+i) = MEMORY[frameNum32*PGSIZE+i];
 		}
 		
-		//printf("%d\n",*((int*)PageDataWrite));
-		//printf("%d\n",(INT32)Z502_MODE);
 		DiskWrite(temp_pid, temp_vpn, (char* )PageDataWrite);
-		//printf("%d\n",(INT32)Z502_MODE);
-		//Z502_MODE = KERNEL_MODE;	
 		DiskRead(temp_pid, temp_vpn, (char* )PageDataRead);
 		Z502_MODE = KERNEL_MODE;
 		for(i=0; i<PGSIZE ;i++){
@@ -124,9 +126,6 @@ INT32 SwapPage(INT32 pid, INT32 VirtualPageNumbe){
 		// Set reserved bit in old page entry.
 		((Z502CONTEXT*)(temp_PCB->ptr_context))->page_table_ptr[temp_vpn] = 0x1000;
 	}
-	
-	// Clear valid bit, set reserved bit.
-	//((Z502CONTEXT*)(temp_PCB->ptr_context))->page_table_ptr[temp_vpn] = 0x1000;
 
 	// Set new page entry.
 	frameNum16 = ((Z502CONTEXT*)(PidToPtr(pid)->ptr_context))->page_table_ptr[VirtualPageNumbe];
@@ -246,18 +245,14 @@ void DiskRead(INT32 disk_id, INT32 sector, char * data){
 	INT32 error = 0;
 	int pid;
 	Get_Process_ID("",&pid,&error);
-	//Z502MemoryReadModify(xxx,1,TRUE,&error);
 	if(dq[disk_id]->head == NULL && MyInterruptStatus != disk_id+4){
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 		lastDiskAct[disk_id] = pid;
 		Disk_R(disk_id, sector, data,0);
 		addToDiskQueue(disk_id, sector, data, D_READ);
 	}
 	else{
 		addToDiskQueue(disk_id, sector, data, D_READ);
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 	}
-	//addToDiskQueue(disk_id, sector, data, D_READ);
 	Dispatcher(SWITCH_CONTEXT_SAVE_MODE);
 }
 
@@ -270,17 +265,19 @@ void DiskRead(INT32 disk_id, INT32 sector, char * data){
 void Disk_R(INT32 disk_id, INT32 sector, char * data,int mark){
 	INT32 Temp;
 	INT32 error;
+
+	// Add lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK,1,TRUE,&error);
 	if(error == FALSE){
 		printf("Error on disk read lock.\n");
 		system("pause");
 	}
+
 	MEM_WRITE(Z502DiskSetID, &disk_id);
 	MEM_WRITE(Z502DiskSetSector, &sector);
 	MEM_WRITE(Z502DiskSetBuffer, (INT32 * )data);
 	Temp = 0;                        // Specify a write
 	MEM_WRITE(Z502DiskSetAction, &Temp);
-	//printf("%d\n",MyInterruptStatus);
 	Temp = 0;                        // Must be set to 0
 	MEM_WRITE(Z502DiskStart, &Temp);
 	
@@ -296,6 +293,8 @@ void Disk_R(INT32 disk_id, INT32 sector, char * data,int mark){
 		PrintReadyQueue();
 		system("pause");
 	}	
+
+	// Release the lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK,0,TRUE,&error);
 	if(error == FALSE){
 		printf("Error on disk read lock.\n");
@@ -314,20 +313,18 @@ void DiskWrite(INT32 disk_id, INT32 sector, char * data){
 	INT32 Temp;
 	/* Do the hardware call to put data on disk */
 	int error;
-		int pid;
+	int pid;
+
 	Get_Process_ID("",&pid,&error);
- 	//Z502MemoryReadModify(xxx,1,TRUE,&error);
 	if(dq[disk_id]->head == NULL && MyInterruptStatus != disk_id+4){
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 				lastDiskAct[disk_id] = pid;
 		Disk_W(disk_id, sector, data,0);
 		addToDiskQueue(disk_id, sector, data, D_WRITE);
 	}
 	else{
 		addToDiskQueue(disk_id, sector, data, D_WRITE);
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 	}
-	//addToDiskQueue(disk_id, sector, data, D_WRITE);
+
 	Dispatcher(SWITCH_CONTEXT_SAVE_MODE);
 }
 
@@ -340,11 +337,14 @@ void DiskWrite(INT32 disk_id, INT32 sector, char * data){
 void Disk_W(INT32 disk_id, INT32 sector, char * data, int mark){
 	INT32 Temp;
 	INT32 error;
+
+	// Add lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK,1,TRUE,&LockError);
 	if(error == FALSE){
 		printf("Error on disk write lock.\n");
 		system("pause");
 	}
+
 	MEM_WRITE(Z502DiskSetID, &disk_id);
 	MEM_WRITE(Z502DiskSetSector, &sector);
 	MEM_WRITE(Z502DiskSetBuffer, (INT32 * )data);
@@ -365,6 +365,8 @@ void Disk_W(INT32 disk_id, INT32 sector, char * data, int mark){
 		PrintReadyQueue();
 		system("pause");
 	}
+
+	// Release the lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK,0,TRUE,&LockError);
 	if(error == FALSE){
 		printf("Error on disk write lock.\n");
@@ -385,7 +387,6 @@ void addToDiskQueue(INT32 disk_id, INT32 sector, char * data, INT32 read_or_writ
 	INT32 error = 0;
 	PDiskBlock newblock = (PDiskBlock)calloc(1,sizeof(DiskBlock));
 
-	//printf("Add to disk queue.\n");
 	newblock->read_or_write = read_or_write;
 	newblock->disk_id = disk_id;
 	newblock->sector = sector;
@@ -395,7 +396,6 @@ void addToDiskQueue(INT32 disk_id, INT32 sector, char * data, INT32 read_or_writ
 	Get_Process_ID("", &pid, &error);
 	newblock->ppcb = PidToPtr(pid);
 
-	
 	newblock->ppcb->ptr_DNode = newblock;
 	
 	EnqueueDiskRequest(newblock);
@@ -410,11 +410,14 @@ void addToDiskQueue(INT32 disk_id, INT32 sector, char * data, INT32 read_or_writ
 ************************************************************************/
 void EnqueueDiskRequest(PDiskBlock newblock){
 	int error;
+
+	// Add lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,1,TRUE,&error);
 	if(error == FALSE){
 		printf("Error on disk queue lock.\n");
 		system("pause");
 	}
+
 	DiskQueue * targetQueue = dq[newblock->disk_id];
 	if(targetQueue->head == NULL){
 		targetQueue->head = newblock;
@@ -425,6 +428,8 @@ void EnqueueDiskRequest(PDiskBlock newblock){
 		targetQueue->head = newblock;
 	}
 	targetQueue->NumOfDNode++;
+
+	// Release the lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,0,TRUE,&error);
 	if(error == FALSE){
 		printf("Error on disk queue lock.\n");
@@ -443,6 +448,8 @@ PDiskBlock GetDiskRequest(INT32 disk_id){
 	DiskQueue * targetQueue;
 	PDiskBlock p;
 	int error;
+
+	// Add lock
 	Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,1,TRUE,&error);
 	if(error == FALSE){
 		printf("Error on disk queue lock.\n");
@@ -464,7 +471,8 @@ PDiskBlock GetDiskRequest(INT32 disk_id){
 			targetQueue->head = targetQueue->rear = NULL;
 			p->ppcb->ptr_DNode = NULL;
 			targetQueue->NumOfDNode--;
-			
+
+			// Release the lock
 			Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,0,TRUE,&error);
 			if(error == FALSE){
 				printf("Error on disk queue lock.\n");
@@ -480,6 +488,7 @@ PDiskBlock GetDiskRequest(INT32 disk_id){
 				targetQueue->rear->next = NULL;
 				targetQueue->NumOfDNode--;
 				
+				// Release the lock
 				Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,0,TRUE,&error);
 				if(error == FALSE){
 					printf("Error on disk queue lock.\n");
@@ -512,10 +521,8 @@ PDiskBlock ReadDiskRequest(INT32 disk_id){
 		system("pause");
 	}
 	targetQueue = *(dq[disk_id]);
-	//Z502MemoryReadModify(xxx,1,TRUE,&error);
 	if(targetQueue.head == NULL){
 		MyInterruptStatus = -1;
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 		Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,0,TRUE,&error);
 		if(error == FALSE){
 			printf("Error on disk queue lock.\n");
@@ -524,7 +531,6 @@ PDiskBlock ReadDiskRequest(INT32 disk_id){
 		return NULL;	
 	}
 	else{
-		//Z502MemoryReadModify(xxx,0,TRUE,&error);
 		Z502MemoryReadModify(MEMORY_INTERLOCK_DISK_QUEUE,0,TRUE,&error);
 		if(error == FALSE){
 			printf("Error on disk queue lock.\n");

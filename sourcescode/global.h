@@ -23,6 +23,12 @@
         3.50 August 2009        Minor cosmetics
         3.60 August 2012        Updates with student generated code to
                                 support MACs
+
+        Final Version:
+        Author:                 Yunhe Tang
+        Complete Time:          12/10/2013
+        Contribution:           Set up global variables
+
 ****************************************************************************/
 #ifndef GLOBAL_H_
 #define GLOBAL_H_
@@ -78,20 +84,17 @@ typedef         int                             BOOL;
 #define         DO_MEMORY_DEBUG                 FALSE
 
 
-        /* Meaning of locations in a page table entry          */
-
+/* Meaning of locations in a page table entry          */
 #define         PTBL_VALID_BIT                  0x8000
 #define         PTBL_MODIFIED_BIT               0x4000
 #define         PTBL_REFERENCED_BIT             0x2000
 #define         PTBL_PHYS_PG_NO                 0x0FFF
 
-        /*  The maximum number of disks we will support:        */
-
+/*  The maximum number of disks we will support:        */
 #define         MAX_NUMBER_OF_DISKS             (short)12
 
 
 /*      These are the memory mapped IO addresses                */
-
 #define      Z502InterruptDevice       Z502InterruptStatus+1
 #define      Z502InterruptStatus       Z502InterruptClear+1
 #define      Z502InterruptClear        Z502ClockStatus+1
@@ -108,36 +111,26 @@ typedef         int                             BOOL;
 #define      Z502MEM_MAPPED_MIN        0x7FF00000
 
 /*  These are the allowable locations for hardware synchronization support */
-
-#define      MEMORY_INTERLOCK_BASE     0x7FE00000
-#define      MEMORY_INTERLOCK_SIZE     0x00000100
-//#define            MEMORY_INTERLOCK_TIMER_QUEUE       0x7FE00008
-#define            MEMORY_INTERLOCK_READY_QUEUE       0x7FE00010
-#define            MEMORY_INTERLOCK_DISK_QUEUE       0x7FE00014
-#define            MEMORY_INTERLOCK_DISK      	  0x7FE00020
-#define            xxx      	  0x7FE00030
-//#define            MEMORY_INTERLOCK_DISK2       	  MEMORY_INTERLOCK_DISK1+4
-//#define            MEMORY_INTERLOCK_DISK3       	  MEMORY_INTERLOCK_DISK2+4
-//#define            MEMORY_INTERLOCK_DISK4       	  MEMORY_INTERLOCK_DISK3+4
-//#define            MEMORY_INTERLOCK_DISK5       	  MEMORY_INTERLOCK_DISK4+4
-//#define            MEMORY_INTERLOCK_TIMER             0x7FE00010
+#define      MEMORY_INTERLOCK_BASE              0x7FE00000
+#define      MEMORY_INTERLOCK_SIZE              0x00000100
+#define      MEMORY_INTERLOCK_READY_QUEUE       0x7FE00010
+#define      MEMORY_INTERLOCK_DISK_QUEUE        0x7FE00014
+#define      MEMORY_INTERLOCK_DISK      	    0x7FE00020
+#define      xxx      	                        0x7FE00030
 
 
 /*  These are the device IDs that are produced when an interrupt
     or fault occurs.                                            */
-        /* Definition of trap types.                            */
-
+/* Definition of trap types.                            */
 #define         SOFTWARE_TRAP                   (short)0
 
-        /* Definition of fault types.                           */
-
+/* Definition of fault types.                           */
 #define         CPU_ERROR                       (short)1
 #define         INVALID_MEMORY                  (short)2
 #define         INVALID_PHYSICAL_MEMORY         (short)3
 #define         PRIVILEGED_INSTRUCTION          (short)4
 
-        /* Definition of interrupt types.                       */
-
+/* Definition of interrupt types.                       */
 #define         TIMER_INTERRUPT                 (short)4
 #define         DISK_INTERRUPT                  (short)5
 #define         DISK_INTERRUPT_DISK1            (short)5
@@ -147,11 +140,9 @@ typedef         int                             BOOL;
 #define         DISK_INTERRUPT_DISK5            (short)9
 #define         DISK_INTERRUPT_DISK6           	(short)10
 #define         DISK_INTERRUPT_MAX           	(short)10
-
 #define			DISK_ID( arg1 )		 ( (int)arg1-4 ) 
 
 /*      ... we could define other explicit names here           */
-
 #define         LARGEST_STAT_VECTOR_INDEX       DISK_INTERRUPT + \
                                                 MAX_NUMBER_OF_DISKS - 1
 
@@ -160,14 +151,12 @@ typedef         int                             BOOL;
         contains pointers to the routines which will handle
         hardware exceptions.  The pointers are accessed with
         these indices:                                          */
-
 #define         TO_VECTOR_INT_HANDLER_ADDR              (short)0
 #define         TO_VECTOR_FAULT_HANDLER_ADDR            (short)1
 #define         TO_VECTOR_TRAP_HANDLER_ADDR             (short)2
 #define         TO_VECTOR_TYPES                         (short)3
 
-        /* Definition of return codes.                           */
-
+/* Definition of return codes.                           */
 #define         ERR_SUCCESS                             0L
 #define         ERR_BAD_PARAM                           1L
 #define         ERR_NO_PREVIOUS_WRITE                   2L
@@ -180,22 +169,18 @@ typedef         int                             BOOL;
 #define         ERR_OS502_GENERATED_BUG                 21L
 
 
-#define			D_WRITE			1
-#define			D_READ			0
-
+#define			D_WRITE			    1
+#define			D_READ			    0
 #define    		INTERRUPT_FREE		0
 #define    		INTERRUPT_IN_USE	1
 
 
 
 
-        /* Miscellaneous                                        */
-
+/* Miscellaneous                                        */
 #define         NUM_LOGICAL_SECTORS                     (short)1600
-
 #define         SWITCH_CONTEXT_KILL_MODE                (short)0
 #define         SWITCH_CONTEXT_SAVE_MODE                (short)1
-
 #define         USER_MODE                               (short)0
 #define         KERNEL_MODE                             (short)1
 

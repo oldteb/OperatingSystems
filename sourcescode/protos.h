@@ -1,5 +1,5 @@
 /*********************************************************************
-protos.h
+ protos.h
 
      This include file contains prototypes needed by the builder of an
      Operating System.
@@ -11,6 +11,11 @@ protos.h
         3.1  August   2004:    hardware interrupt runs on separate thread
         3.11  August  2004:    Support for OS level locking
         4.0   May     2013:    Support for new testing mechanism
+
+     Final Version:
+     Author:                 Yunhe Tang
+     Complete Time:          12/10/2013
+     Contribution:           Add test function declaretions 
 
 *********************************************************************/
 #ifndef  PROTOS_H
